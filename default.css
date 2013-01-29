@@ -6,14 +6,332 @@
 }
 
 body {
-   margin: 0;
    padding: 0;
-   line-height: 1.625;
-   background-color: #445368;
+   margin: 0;
+   background-color: #333;
+   overflow-y: hidden;
+   overflow-x: hidden;
 }
 
-#game {
-   position: absolute;
-   left: 0;
-   top: 0;
+
+/* content sized to iPad 2 dimensions */
+.content {
+   padding: 25px;
+   line-height: 1.625;
+   background-color: #445368;
+   width: 1024px;
+   height: 768px;
+   position: relative;
+   text-align: center;
 }
+
+
+/* status bar at top of the screen */
+.status-bar {
+   margin: 0;
+   padding: 0;
+   height: 50px;
+   width: 100%;
+   background-color: rgba(0, 0, 0, 0.4);
+   border-collapse: collapse;
+   
+   font-size: 36px;
+   font-family: sans-serif;
+   font-weight: 500;
+   text-shadow: 1px 1px #000;
+   text-align: left;
+   line-height: 0px;
+   color: white;
+}
+
+
+/* month / day in status bar */
+.status-date { padding-left: 20px; }
+
+
+/* temperature in status bar */
+.status-temp { padding-right: 20px; }
+
+
+/* vertical HIGH or LOW text in status bar */
+.status-marker {
+   font-size: 12px;
+   -webkit-transform: rotate(-90deg);
+}
+
+
+/* page transition animation */
+@-webkit-keyframes slidein {
+   0%   { left: 1500px; }
+   100% { left: 25px; }
+}
+
+@-webkit-keyframes slideout {
+   0%   { left: 25px; }
+   100% { left: -1500px; }
+}
+
+
+/* dialog box */
+.page {
+   position: absolute;
+   top: 98px;
+   left: 1500px;
+   
+   padding: 30px;
+   width: 964px;
+   height: 570px;
+   text-align: center;
+   background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+button {
+   outline: none;
+   border: none;
+}
+
+/* define our own button style */
+.tool-button {
+   outline: none;
+   border: none;
+   width: 56px;
+   height: 56px;
+   border-radius: 12px;
+}
+
+
+/* settings button */
+#settings-button {
+   position: absolute;
+   bottom: 20px;
+   left: 90px;
+   background: url("images/settings.png") 0 0 no-repeat;
+}
+#settings-button:active { background-position: 3px 3px; }
+#settings-button:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+
+/* home button */
+#home-button {
+   position: absolute;
+   bottom: 20px;
+   left: 20px;
+   background: url("images/home.png") 0 0 no-repeat;
+}
+#home-button:active { background-position: 3px 3px; }
+#home-button:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+
+/* Next button at the bottom right of the screen */
+.next-button {
+   width: 150px;
+   height: 59px;
+   position: absolute;
+   bottom: 25px;
+   right: 25px;
+   background: url("images/next.png") 0 0 no-repeat;
+}
+.next-button:hover { background-color: rgba(0, 0, 0, 0); }
+.next-button:active { background-position: 3px 3px; }
+
+/* spinner canvas */
+#spinner {
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 40px;
+   display: block;
+}
+
+
+/* thermostat canvas */
+#thermostat {
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 20px;
+   display: block;
+}
+
+
+/* simulator canvas */
+#simulator {
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 20px;
+   display: block;
+}
+
+
+/* weather report */
+#weather-report {
+   width: 100%;
+   text-align: center;
+   color: rgba(255, 255, 255, 0.8);
+   font-family: 'Source Sans Pro', sans-serif;
+   font-weight: 300;
+   font-size: 24px;
+   margin-top: 40px;
+   padding: 0;
+}
+
+
+/* weather high / low temperatures */
+#weather-temps {
+   width: 100%;
+   text-align: center;
+   color: rgba(255, 255, 255, 0.8);
+   font-family: sans-serif;
+   font-weight: normal;
+   font-size: 48px;
+   margin-top: 15px;
+   padding: 0;
+}
+
+
+/* Big Title Screen Text */
+.title {
+   width: 100%;
+   display: block;
+   margin-top: 80px;
+   margin-bottom: 120px;
+   color: #ddd;
+   font-family: 'Wellfleet', cursive, sans-serif;
+   font-weight: 400;
+   font-size: 84px;
+   text-align: center;
+   text-shadow:
+      3px 3px 0 #000,
+      1px -1px 0 #000,
+      1px 1px 0 #000,
+      -1px -1px 0 #000,  
+      -1px 1px 0 #000;
+}
+
+
+
+/* Title Screen Play Button */
+.big-button {
+   margin-left: auto;
+   margin-right: auto;
+   text-align: center;
+   border-radius: 30px;
+   border: 3px solid rgba(255, 255, 255, 0.7);
+   width: 100px;
+   background-color: rgba(255, 255, 255, 0.2);
+   margin-top: 0px;
+   display: block;
+   font-family: sans-serif;
+   font-weight: 400;
+   font-size: 20px;
+   color: white;
+   text-decoration: none;
+   text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.big-button:hover {
+   background: rgba(255, 255, 255, 0.5);
+}
+
+.big-button:active {
+   background: rgba(255, 255, 255, 0.7);
+}
+
+
+#settings-page {
+   background-color: #333;
+   left: 25px;
+   visibility: hidden;
+}
+
+
+input[type="range"] {
+   -webkit-appearance:none;
+   -moz-apperance:none;
+   width:400px;
+   height:12px;
+   background-color: rgba(255, 255, 255, 0.5);
+   border-radius: 5px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none !important;  
+   width:20px;
+   height:20px;
+   border-radius:10px;
+   background-color: #fff;
+}
+
+label {
+   color: white;
+   font-family: 'Source Sans Pro', sans-serif;
+   font-weight: 300;
+   font-size: 18px;
+}
+
+output {
+   font-family: sans-serif;
+   border-radius: 15px;
+   background-color: white;
+   color: #445368;
+}
+
+table {
+   background-color: rgba(0, 0, 0, 0.2);
+   border-spacing: 25px;
+   text-align: right;
+   margin-right: auto;
+   margin-left: auto;
+}
+
+td.bubble {
+   background-color: white;
+   border-radius: 15px;
+   padding: 3px 10px 3px 10px;
+   text-align: center;
+   width: 55px;
+}
+
+.button-group {
+   font-size: 0; /* Inline block elements gap - fix */
+   margin: 0;
+   padding: 0;
+   display: inline-block;
+}
+
+.button-group li {
+   display: inline-block;
+   margin-right: -1px;
+}
+
+button.radio-mix {
+   display: inline-block;
+   background-color: rgba(255, 255, 255, 0.5);
+   border: 1px solid white;
+   color: #fff;
+   font-family: 'Source Sans Pro', sans-serif;
+   font-size: 15px;
+   padding: 8px;
+   text-align: center;
+   width: 130px;
+}
+
+button.radio-mix:hover {
+   background-color: rgba(255, 255, 255, 0.3);
+}
+
+button.radio-mix:active {
+   background-color: rgba(255, 255, 255, 0.8);
+}
+
+button.radio-mix[checked=true] {
+   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-group li:first-child .radio-mix {
+  border-radius: 18px 0 0 18px;
+}
+
+.button-group li:last-child .radio-mix {
+  border-radius: 0 18px 18px 0;
+}
+
