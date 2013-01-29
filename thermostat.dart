@@ -14,40 +14,77 @@
 part of GreenHomeGames;
 
 
-class RoundThermostat extends Slidable implements Touchable {
+abstract class Thermostat {
+  
+  double settemp = 70.0;
+  
+  // returns the set temperature for the given time of day
+  double getSetTemperature(int hour, int minute) {
+    return settemp;
+  }
+  
+  void setTemperature(double t) {
+    settemp = t;
+  }
+  
+  
+  void draw();
+  
+}
+
+
+class RoundThermostat extends Thermostat {
   
   const MIN_ANGLE = -PI / 2.3;
   const MAX_ANGLE = PI / 2.3;
   ImageElement dial;
   ImageElement shell;
 
-  int width = 600;
-  int height = 600;
+  int width = 600, height = 600;
+
   bool down = false;
+
   double angle = 0.0;
+  
   double lastX, lastY;
   
+  CanvasRenderingContext2D ctx;
+  
+  Game game;
   
   
-  RoundThermostat(double x, double y) : super(x, y) {
-    Sounds.loadSound("heater");
+  RoundThermostat(this.game) {
+    
+    CanvasElement canvas = document.query("#thermostat");
+    ctx = canvas.getContext("2d");
+    width = canvas.width;
+    height = canvas.height;
+    
     dial = new ImageElement();
     dial.src = "images/round_dial.png";
-    dial.on.load.add((event) {
-      width = dial.width;
-      height = dial.height;
-    }, true);
-    
     shell = new ImageElement();
     shell.src = "images/round_shell.png";
+    shell.on.load.add((evt) => draw());
     
-    TouchManager.addTouchable(this, "game");
+    // Register mouse events
+    canvas.on.mouseDown.add((e) => mouseDown(e), true);
+    canvas.on.mouseUp.add((e) => mouseUp(e), true);
+    canvas.on.mouseMove.add((e) => mouseMove(e), true);
+
+    // Register touch events
+    canvas.on.touchStart.add((e) => touchDown(e), true);
+    canvas.on.touchMove.add((e) => touchDrag(e), true);
+    canvas.on.touchEnd.add((e) => touchUp(e), true);
+    
   }
   
   
-  void draw(CanvasRenderingContext2D ctx) {
-    double ix = x + deltaX;
-    double iy = y;
+  void setTemperature(double t) { }
+  
+  
+  void draw() {
+    double ix = 0.0;
+    double iy = 0.0;
     double iw = dial.width.toDouble();
     double ih = dial.height.toDouble();
     ctx.save();
@@ -64,46 +101,59 @@ class RoundThermostat extends Slidable implements Touchable {
   }
   
   
-  // Return true iff touch intersects with the given object
-  bool containsTouch(Contact event) {
-    num tx = event.touchX - deltaX;
-    num ty = event.touchY;
-    return (tx >= x && ty >= y && tx <= x + width && ty <= y + height);
+  double getSetTemperature(int hour, int minute) {
+    
+    // round thermostat has a constant temperature all day long
+    return getTemperature().toDouble();
   }
   
   
-  bool touchDown(Contact event) {
-    down = true;
-    lastX = event.touchX - deltaX;
-    lastY = event.touchY;
-    return true;
-  }
-  
-  
-  void touchUp(Contact event) {
+  void mouseUp(MouseEvent evt) {
     down = false;
-    Sounds.playSound("heater");
-    Game.repaint();
   }
   
   
-  // This gets fired only after a touchDown lands on the touchable object
-  void touchDrag(Contact event) {
-    double tx = event.touchX - deltaX;
-    double ty = event.touchY;
-    num a1 = atan2(lastX - x - width/2.0, lastY - y - height/2);
-    num a2 = atan2(tx - x - width/2.0, ty - y - height/2);
-    angle -= (a2 - a1); 
-    if (angle > PI) angle -= PI * 2;
-    if (angle < -PI) angle += PI * 2;
-    angle = min(angle, MAX_ANGLE);
-    angle = max(angle, MIN_ANGLE);
-    Game.repaint();
-    lastX = tx;
-    lastY = ty;
+  void mouseDown(MouseEvent evt) {
+    lastX = evt.offsetX.toDouble();
+    lastY = evt.offsetY.toDouble();
+    down = true;
+  }
+   
+  
+  void mouseMove(MouseEvent evt) {
+    if (down) {
+      
+      double tx = evt.offsetX.toDouble();
+      double ty = evt.offsetY.toDouble();
+      num a1 = atan2(lastX - width/2.0, lastY - height/2);
+      num a2 = atan2(tx - width/2.0, ty - height/2);
+      angle -= (a2 - a1); 
+      if (angle > PI) angle -= PI * 2;
+      if (angle < -PI) angle += PI * 2;
+      angle = min(angle, MAX_ANGLE);
+      angle = max(angle, MIN_ANGLE);
+      draw();
+      lastX = tx;
+      lastY = ty;
+    }
   }
   
   
-  // This gets fired when an unbound touch events slides over an object
-  void touchSlide(Contact event) { }
+  void touchDown(TouchEvent tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  }
+  
+  
+  void touchUp(var tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  }
+  
+  
+  void touchDrag(var tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  } 
+  
 }
