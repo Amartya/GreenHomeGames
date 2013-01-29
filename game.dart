@@ -16,107 +16,167 @@ part of GreenHomeGames;
 
 class Game {
    
-  // size of the game canvas
-  int width, height;
-   
   // Month / Day spinners
-  Spinner month, day;
+  DateSpinner spinner;
    
-  // Next button
-  Button next;
-
-  // Weather indicator  
+  // Weather model
   Weather weather;
   
-  // temperature simulation
-  Grid grid;
-   
-  // Thermostat control
-  RoundThermostat thermostat;
+  // Thermostat 
+  Thermostat thermostat;
 
-  // Penguine  
-  ImageElement ping;
-  
+  // indoor temperature simulation
+  Simulator simulator;
+   
   // Status indicators
   Indicator pollution, energy, money;
   
-  // Drawing context for the main canvas
-  static CanvasRenderingContext2D ctx;
-  
-  // Used for static repaint method
-  static Game instance;
-
   
   Game() {
     
-    Game.instance = this;
-    
-    // Set up touch layer
-    TouchLayer layer = new TouchLayer.fromCanvas("game");
-    layer.resizeToFitScreen();
-    Game.ctx = layer.context;
-    width = layer.width;
-    height = layer.height;
-    TouchManager.addLayer(layer);
-    
-    // Load penguine image
-    ping = new ImageElement();
-    ping.src = "images/ping.png";
-      
     // Load sound effects
     Sounds.loadSound("tick");
     Sounds.loadSound("crank");
     Sounds.loadSound("heater");
   
-    // Create spinners
-    month = new Spinner(45, 32, 100, 37);
-    day = new Spinner(155, 32, 50, 37);
-    day.VALUES = [];
-    for (int i=1; i<=31; i++) day.VALUES.add(i);
+    // Create spinner control 
+    spinner = new DateSpinner(this);
+    spinner.onDone = () {
+      weather.setDate(spinner.month, spinner.day);
+    };
 
-    // Next button
-    next = new Button(width - 170, height - 80);
-    next.setImage("images/next.png");
-    next.onClick = (action) => nextTurn(1);
-    layer.addTouchable(next);
+    // Transition from page1 to page2
+    ButtonElement next = document.query("#next1");
+    next.on.click.add((event) {
+      slidePageOut("page1");
+      slidePageIn("page2");
+      next.style.visibility = "hidden";
+    }, true);
+    
+    
+    // Transition from page2 to page3
+    next = document.query("#next2");
+    next.on.click.add((event) {
+      slidePageOut("page2");
+      slidePageIn("page3");
+      window.setTimeout(() {
+        simulator.clear();
+        simulator.run();
+      }, 1000);
+    }, true);
+    
+    
+    // Transition from page3 to page1
+    next = document.query("#next3");
+    next.on.click.add((event) {
+      slidePageOut("page3");
+      slidePageIn("page1");
+      next.style.visibility = "hidden";
+    }, true);
+    
     
     // Pollution indicator
+    /*
     pollution = new Indicator(450.0, 225.0);
     pollution.percent = 75;
     pollution.total = 235;
+    */
     
     // Energy indicator
+    /*
     energy = new Indicator(450.0, 325.0);
     energy.percent = 60;
     energy.total = 180;
     energy.label = "Energy";
     energy.unit = "kilowatt hours";
+    */
     
     // Money indicator
+    /*
     money = new Indicator(450.0, 425.0);
     money.percent = 92;
     money.total = 150;
     money.label = "Money";
     money.unit = "dollars";
+    */
     
-    // Temperature simulation grid
-    grid = new Grid(width / 2 - 325, height / 2 - 200, 650.0, 400.0);
-    grid.hide();
+    // Temperature simulation
+    simulator = new Simulator(this);
+    simulator.onDone = () {
+      Element el = document.query("#next3");
+      el.style.visibility = 'visible';
+    };
     
     // Round thermostat control
-    thermostat = new RoundThermostat(width / 2 - 300.0, height / 2 - 250.0);
-    thermostat.hide();
+    thermostat = new RoundThermostat(this);
     
-    // Weather indicator
-    weather = new Weather(width / 2, height / 2);
-    weather.hide();
+    // Weather model
+    weather = new Weather();
+    setDate(1, 1);
+    hideWeather();
+    draw();
     
-    // Give images and fonts a moment to load
-    window.setTimeout(draw, 500);
+    // slide in page 1
+    window.setTimeout(() => slidePageIn("page1"), 1000);
+  }
+  
+  
+  void slidePageIn(String page) {
+    Element el = document.query("#$page");
+    el.style.animation = "slidein 0.5s ease-in 0 1";
+    el.style.left = "25px";
+  }
+  
+  
+  void slidePageOut(String page) {
+    Element el = document.query("#$page");
+    el.style.animation = "slideout 0.5s ease-out 0 1";
+    el.style.left = "-1500px";
+  }
+  
+  
+  void setDate(int month, int day) {
+    spinner.setDate(month, day);
+    weather.setDate(month, day);
+    Element el = document.query("#curr-date");
+    el.innerHtml = weather.getDateString();
+  }
+  
+  
+  void hideWeather() {
+    Element el;
+    el = document.query("#next1");
+    el.style.visibility = 'hidden';
+    el = document.query("#high-temp");
+    el.innerHtml = "?";
+    el = document.query("#low-temp");
+    el.innerHtml = "?";
+    el = document.query("#weather-report");
+    el.innerHtml = "";
+    el = document.query("#weather-temps");
+    el.innerHtml = "";
+  }
+  
+  
+  void showWeather() {
+    Element el = document.query("#high-temp");
+    el.innerHtml = "${weather.high}&deg;";
+    el = document.query("#low-temp");
+    el.innerHtml = "${weather.low}&deg;";
+    el = document.query("#weather-report");
+    el.innerHtml = weather.getWeatherSummary();
+    el = document.query("#weather-temps");
+    el.innerHtml = weather.getTemperatureString();
+    el = document.query("#next1");
+    el.style.visibility = 'visible';
   }
 
   
   void nextTurn(int s) {
+    //simulator.clear();
+    //simulator.run();
+    //spinner.spin();
+    /*
     switch (s) {
       case 0:
         grid.slideOff(0);
@@ -132,11 +192,10 @@ class Game {
         window.setTimeout(() => Sounds.playSound("crank"), 900);
         window.setTimeout(() => month.moveTo(month.index + 1), 1900);
         window.setTimeout(() => day.spin(), 2700);
-        weather.slideOn(200);
         next.onClick = (action) => nextTurn(2);
         break;
       case 2:
-        weather.slideOff(0);
+        weather.setDate(month.index, day.index);
         thermostat.slideOn(0);
         next.onClick = (action) => nextTurn(3);
         break;
@@ -147,34 +206,18 @@ class Game {
         next.onClick = (action) => nextTurn(0);
         break;
     }
+    */
   }
   
   
-  static void repaint() {
-    Game.instance.draw();
-  }
-  
-      
   void draw() {
-    ctx.clearRect(0, 0, width, height);
-    
-    // draw penguine
-    ctx.drawImage(ping, 40, height - 180);
-    
-    // draw top date bar
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-    ctx.fillRect(25, 25, width - 50, 50);
-    
     // draw grid elements
-    pollution.draw(ctx);
-    energy.draw(ctx);
-    money.draw(ctx);
-    month.draw();
-    day.draw();
-    next.draw(ctx);
-    weather.draw(ctx);
-    thermostat.draw(ctx);
-    grid.draw(ctx);
+    //pollution.draw(ctx);
+    //energy.draw(ctx);
+    //money.draw(ctx);
+    spinner.draw();
+    thermostat.draw();
+    simulator.draw();
   }
 }
 
