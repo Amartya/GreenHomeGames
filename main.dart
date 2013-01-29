@@ -21,7 +21,6 @@ import 'touch.dart';
 part 'game.dart';
 part 'simulator.dart';
 part 'indicator.dart';
-part 'slidable.dart';
 part 'sounds.dart';
 part 'spinner.dart';
 part 'thermostat.dart';
