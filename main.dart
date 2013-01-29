@@ -18,9 +18,8 @@ import 'dart:math';
 import 'dart:web_audio';
 import 'touch.dart';
 
-part 'button.dart';
 part 'game.dart';
-part 'grid.dart';
+part 'simulator.dart';
 part 'indicator.dart';
 part 'slidable.dart';
 part 'sounds.dart';
