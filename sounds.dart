@@ -38,13 +38,13 @@ class Sounds {
 
 
   static void playSound(String name) {
-     if (sounds[name] == null) return;
-     AudioBufferSourceNode source = audio.createBufferSource();
-     source.connect(audio.destination, 0, 0);
-     source.buffer = sounds[name];
-     source.loop = false;
-     source.gain.value = 0.2;
-     source.playbackRate.value = 1;
-     source.start(0);
+    if (sounds[name] == null) return;
+    //AudioBufferSourceNode source = audio.createBufferSource();
+    //source.connect(audio.destination, 0, 0);
+    //source.buffer = sounds[name];
+    //source.loop = false;
+    //source.gain.value = 0.2;
+    //source.playbackRate.value = 1;
+    //source.start(0);
   }
 }
