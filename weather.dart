@@ -13,54 +13,76 @@
  */
 part of GreenHomeGames;
 
-class Weather extends Slidable {
+class Weather {
+  
+  static List<String> MONTHS = [ "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" ];
    
-  ImageElement image;
+  Random rand = new Random();
+  
+  // high temperature for the current day
+  int high = 102;
+  
+  // low temperature for the current day
+  int low = 3;
+  
+  // current month (1 = JAN, 2 = FEB, ...)
+  int month = 1;
+  
+  // current day (i.e. 1 - 31)
+  int day = 1;
   
    
-  Weather(double x, double y) : super(x, y) {
-    image = new ImageElement();
-    image.src = "images/icy.png";
+  Weather() {
+    setDate(1, 15);
   }
   
   
-  void draw(CanvasRenderingContext2D ctx) {
-    
-    // weather icon
-    int iw = image.width;
-    int ih = image.height;
-    ctx.drawImage(image, x - iw/2 + deltaX, y - ih/2, iw, ih);
+  /*
+   * Set the current month and day and determine the summary weather information
+   */
+  void setDate(int month, int day) {
 
+    this.month = min(max(0, month), MONTHS.length);
+    this.day = day;
     
-    // high temperature
-    /*
-    ctx.font = "60px arial, sans-serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "top";
-    ctx.fillText("25", x + 160, y + 30);
-    ctx.font = "14px arial, sans-serif";
-    ctx.fillText("HIGH", x + 160, y + 90);
-    
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x + 174, y + 45, 6, 0, 2 * PI, true);
-    ctx.stroke();
-    */
-    
-    // low temperature
-    /*
-    ctx.font = "60px arial, sans-serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "top";
-    ctx.fillText("2", x + width - 40, y + 30);
-    
-    ctx.font = "14px arial, sans-serif";
-    ctx.fillText("LOW", x + width - 40, y + 90);
-    ctx.beginPath();
-    ctx.arc(x + width - 26, y + 45, 6, 0, 2 * PI, true);
-    ctx.stroke();
-    */
+    // for now fake the climate with a sine wave and some randomness
+    double theta = (month - 1) * (1.0 / 12.0) * PI * 2 - PI / 2;
+    int avg = (sin(theta) * 30.0 + 50.0).toInt();
+    high = avg - 25 + rand.nextInt(50);
+    low = high - 2 - rand.nextInt(20);
+  }
+  
+
+  /*
+   * Get the temperature for the given hour and minute (12am == hour 0)
+   */
+  double getTemperature(int hour, int minute) {
+    double range = (high - low) / 2.0;
+    double theta = (hour * 60 + minute) * PI / (12.0 * 60.0) - PI / 2.0;
+    return sin(theta) * range + range + low;
+  }
+  
+  
+  /*
+   * Returns a summary of weather conditions for the given day
+   */
+  String getWeatherSummary() {
+    return "Foggy with a chance of snow";
+  }
+  
+  
+  /*
+   * Returns an HTML string for the current month and day
+   */
+  String getDateString() {
+    return "${MONTHS[month - 1]}&nbsp;$day";
+  }
+  
+  
+  /*
+   * Returns an HTML string for the high / low temps
+   */
+  String getTemperatureString() {
+    return "High ${high}&deg;&nbsp;&nbsp; Low ${low}&deg;";
   }
 }
-
