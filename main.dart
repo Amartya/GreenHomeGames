@@ -26,6 +26,8 @@ part 'spinner.dart';
 part 'thermostat.dart';
 part 'tween.dart';
 part 'weather.dart';
+part 'zones.dart';
+part 'family.dart';
 
 
 void main() {
