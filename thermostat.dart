@@ -16,20 +16,17 @@ part of GreenHomeGames;
 
 abstract class Thermostat {
   
-  double settemp = 70.0;
+  // Heating (0), Off (1), or Cooling (2)?
+  int state = 0; 
   
-  // returns the set temperature for the given time of day
-  double getSetTemperature(int hour, int minute) {
-    return settemp;
-  }
-  
-  void setTemperature(double t) {
-    settemp = t;
-  }
-  
+  // returns the set temperature for the given time of day (in minutes)
+  double getSetTemperature(int time);
   
   void draw();
   
+  bool get heating => (state == 0);
+  bool get cooling => (state == 2);
+  bool get off => (state == 1);
 }
 
 
@@ -76,10 +73,11 @@ class RoundThermostat extends Thermostat {
     canvas.on.touchMove.add((e) => touchDrag(e), true);
     canvas.on.touchEnd.add((e) => touchUp(e), true);
     
+    InputElement toggle = document.query("#heating-switch");
+    toggle.on.change.add((e) {
+      state = int.parse(toggle.value);
+    }, true);
   }
-  
-  
-  void setTemperature(double t) { }
   
   
   void draw() {
@@ -96,15 +94,14 @@ class RoundThermostat extends Thermostat {
   }
   
   
-  int getTemperature() {
-    return (70 + (angle / PI) * 180 * 0.36).round().toInt();
+  double getTemperature() {
+    return (70 + (angle / PI) * 180 * 0.36);
   }
   
   
-  double getSetTemperature(int hour, int minute) {
-    
+  double getSetTemperature(int time) {
     // round thermostat has a constant temperature all day long
-    return getTemperature().toDouble();
+    return getTemperature();
   }
   
   
@@ -155,5 +152,4 @@ class RoundThermostat extends Thermostat {
     for (var te in tframe.changedTouches) {
     }
   } 
-  
 }

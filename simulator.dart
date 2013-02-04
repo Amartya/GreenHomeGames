@@ -16,21 +16,6 @@ part of GreenHomeGames;
 
 class Simulator {
    
-  // insulation value
-  double R = 0.3;
-  
-  // thermal conductivity coefficient
-  double K = 0.003;
-  
-  // furnace power
-  double B = 1.0;
-  
-  // furnace efficiency
-  double E = 0.2;
-  
-  // energy rate ($ / kWh)
-  double C = 0.85;
-  
   // step time (5 minutes)
   const STEP = 5;
 
@@ -38,19 +23,13 @@ class Simulator {
   var TIMES = [ "12am", "2am", "4am", "6am", "8am", "10am", "noon", "2pm", "4pm", "6pm", "8pm", "10pm", "12pm" ];
   
   // y-axis temp range
-  var TEMPS = [ 50, 55, 60, 65, 70, 75, 80, 85 ];
-
+  var TEMPS = [ 55, 60, 65, 70, 75, 80 ];
+  
   // size of the simulation display
   int width = 500, height = 400;
   
   // current simulation time
   int simTime = 24 * 60;
-  
-  // is the furnace on or off
-  bool furnace = false;
-  
-  // is A/C on or off
-  bool ac = false;
   
   // inside temperatures (F) over time
   List<double> temps;
@@ -64,11 +43,11 @@ class Simulator {
   // reference to the game engine
   Game game;
   
-  // heating or cooling system?
-  bool cool = false;
-  
   // callback for when the simulation is finished running
   Function onDone = null;
+  
+  // callback for when the simulation is starting
+  Function onStart = null;
   
   // drawing context
   CanvasRenderingContext2D ctx;
@@ -79,6 +58,17 @@ class Simulator {
     ctx = canvas.getContext("2d");
     width = canvas.width;
     height = canvas.height;
+    
+    // Register mouse events
+    canvas.on.mouseDown.add((e) => mouseDown(e), true);
+    canvas.on.mouseUp.add((e) => mouseUp(e), true);
+    canvas.on.mouseMove.add((e) => mouseMove(e), true);
+
+    // Register touch events
+    canvas.on.touchStart.add((e) => touchDown(e), true);
+    canvas.on.touchMove.add((e) => touchDrag(e), true);
+    canvas.on.touchEnd.add((e) => touchUp(e), true);
+    
     clear();
   }
   
@@ -88,31 +78,24 @@ class Simulator {
     temps.add(70.0);
     simTime = 0;
     energy = 0.0;
-    R = double.parse(window.localStorage['valueR']);  // insulation 
-    B = double.parse(window.localStorage['valueB']);  // furnace power
-    E = double.parse(window.localStorage['valueE']);  // efficiency
-    C = double.parse(window.localStorage['valueC']);  // energy rate
   }
 
 
   void run() {
+    if (simTime == 0 && onStart != null) onStart();
+
     bool b = step();
     draw();
     if (b) {
-      window.setTimeout(run, 30);
+      window.setTimeout(run, 20);
     } else if (onDone != null) {
       onDone();
     }
   }
   
   
-  double getInsideTemperature() {
-    int index = simTime ~/ STEP;
-    if (index < temps.length) {
-      return temps[index];
-    } else {
-      return 70.0;
-    }
+  double getCurrentTemperature() {
+    return getTemperature(simTime);
   }
   
   
@@ -127,10 +110,37 @@ class Simulator {
       return avg / temps.length;
     }
   }
-
+  
+  
+  double getTemperature(int time) {
+    int index = time ~/ STEP;
+    if (index >= 0 && index < temps.length) {
+      return temps[index];
+    } else {
+      return 70.0;
+    }
+  }
+  
+  
+  int get bill {
+    double C = double.parse(window.localStorage['valueC']); 
+    return (energy * C / 10.0).toInt() * 10;
+  }
+  
   
   bool step() {
+    
+    // insulation value
+    double R = double.parse(window.localStorage['valueR']);
+    double K = (1 - R) / 175;
+    
+    // furnace power
+    double B = double.parse(window.localStorage['valueB']); 
+    
+    // furnace efficiency
+    double E = double.parse(window.localStorage['valueE']);
 
+    // only simulate 24 hours
     if (simTime >= 60 * 24) return false;
     
     // Reference to our weather model with outside temperatures    
@@ -140,25 +150,20 @@ class Simulator {
     Thermostat thermostat = game.thermostat;
     
     // current inside temperature
-    double temp = getInsideTemperature();
+    double temp = getCurrentTemperature();
     
     // advance time step
     simTime += STEP;
     
     // thermostat set temperature
-    double stemp = thermostat.getSetTemperature(simTime ~/ 60, simTime % 60);
+    double stemp = thermostat.getSetTemperature(simTime);
 
-    // furnace turns on when actual temp is less than the set temp                     
-    furnace = (stemp > temp) && !cool;
-    ac = (stemp < temp) && cool;
-    
     // add to the thermal velocity and total energy
-    if (furnace) {
+    if (thermostat.heating && stemp > temp) {
       velocity += STEP * B * E;
       energy += STEP * B;
     }
-    
-    if (ac) {
+    else if (thermostat.cooling && stemp < temp) {
       velocity -= STEP * B * E;
       energy += STEP * B;
     }
@@ -168,7 +173,6 @@ class Simulator {
     double dT = temp - outside;
 
     // temperature flux
-    K = (1 - R) / 300;
     double q = K * dT * STEP;
     
     velocity -= q;
@@ -177,7 +181,12 @@ class Simulator {
     temps.add(temp + velocity);
     
     // apply "friction"
-    velocity *= 0.7;
+    velocity *= 0.85;
+    
+    // compute comfort scores
+    for (Person p in game.family.people) {
+      p.updateComfortScore(temps, STEP);
+    }
     
     return true;
   }
@@ -210,14 +219,16 @@ class Simulator {
       ctx.moveTo(gx, gy + i * gs);
       ctx.lineTo(gx + gw, gy + i * gs);
     }
-
-    // Bounding box      
     ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
     ctx.stroke();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    
+
+    // Bounding box      
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
     ctx.fillRect(gx, gy, gw, gh);
     ctx.strokeStyle = "white";
     ctx.strokeRect(gx, gy, gw, gh);
+    
     
     // Grid Labels
     ctx.font = "10pt Arial, sans-serif";
@@ -241,38 +252,95 @@ class Simulator {
       ctx.fillText(TEMPS[gc-i].toString(), gx + gw + 6, gy + i * gs);
     }
     
+    
+    // draw comfort zones
+    for (Person p in game.family.people) {
+      if (p.show_zones) {
+        drawComfortZones(p.zones);
+      }
+    }
+    
+    
     // temperature curve
     if (temps.length > 0) {
-      double tx = timeToX(0).toDouble();
-      double ty = tempToY(temps[0]);
+      
+      double x0, y0, x1, y1, t0, t1;
+      
+      t0 = temps[0];
+      x0 = timeToX(0);
+      y0 = tempToY(t0);
       ctx.beginPath();
-      ctx.moveTo(tx, ty);
+      ctx.moveTo(x0, y0);
       
       for (int i=1; i<temps.length; i++) {
-        tx = timeToX(i * STEP).toDouble();
-        ty = tempToY(temps[i]);
-        ctx.lineTo(tx, ty);
+        t1 = temps[i];
+        x1 = timeToX(i * STEP);
+        y1 = tempToY(t1);
+        
+        ctx.lineTo(x1, y1);
+        
+        x0 = x1; y0 = y1; t0 = t1;
       }
-      ctx.lineTo(tx, gy + gh);
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.lineTo(x0, gy + gh);
+      ctx.lineTo(x0, gy + gh);
       ctx.lineTo(gx, gy + gh);
+      
       ctx.closePath();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
       ctx.fill();
     }
     
+
     // energy use so far
-    ctx.font = "22px sans-serif";
-    ctx.textAlign = "left";
+    ctx.font = "18px sans-serif";
+    ctx.textAlign = "center";
     ctx.textBaseline = "top";
     ctx.fillStyle = "white";
     String str = "Energy: ${energy.toInt()} kWh";
-    ctx.fillText(str, gx, gy + gh + 40);
+    ctx.fillText(str, gx + gw / 2, gy + gh + 40);
     
-    ctx.textAlign = "center";
-    ctx.fillText("Bill: \$${(energy * C).toInt()}", gx + gw/2, gy + gh + 40);
+    Element el = document.query("#running-bill");
+    if (el != null) {
+      el.innerHtml = "\$${bill}";
+    }
+  }
+  
+  
+  void drawComfortZones(ComfortZones zones) {
     
-    ctx.textAlign = "right";
-    ctx.fillText("Avg. Temperature: ${getAverageTemperature().toInt()}", gx + gw, gy + gh + 40);
+    // Comfort zones
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = "10pt Arial, sans-serif";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    num sw = (tempToY(60) - tempToY(64));  // stroke width = 4degrees
+    ctx.lineWidth = sw;
+    
+    for (Zone zone in zones.zones) {
+      ctx.beginPath();
+      double x0 = timeToX(zone.start);
+      double x1 = timeToX(zone.end);
+      double y0 = tempToY(zone.temp);
+
+      if (x0 > x1) {
+        ctx.moveTo(timeToX(0), y0);
+        ctx.lineTo(x1, y0);
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(timeToX(24 * 60), y0);
+       } else {
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y0);
+      }
+      ctx.stroke();
+      ctx.fillText(zone.name, x0 + 6, y0 - sw / 2 + 6);
+    
+    }
+    ctx.fillText(zones.night.name, timeToX(0) + 6, tempToY(zones.night.temp) - sw / 2 + 6);
   }
 
   
@@ -291,19 +359,19 @@ class Simulator {
   }
 
    
-  double tempToY(double temp) {
+  double tempToY(num temp) {
     num y = 10;
     num h = height - 80;
     
-    if (temp <= 50) {
+    if (temp <= 55) {
       return y + h - 1.0;
     }
-    else if (temp >= 90) {
+    else if (temp >= 80) {
       return y + 1.0;
     }
     else {
-      temp -= 50;
-      return y + h - temp * (h / 35);
+      temp -= 55;
+      return y + h - temp * (h / 25);
     }
   }
 
@@ -319,6 +387,42 @@ class Simulator {
       ty = 1 - ((ty - y) / h);
       return (50.0 + (35 * ty));
     }
-  }  
+  }
+  
+  bool down = false;
+  
+  void mouseUp(MouseEvent evt) {
+    down = false;
+  }
+  
+  
+  void mouseDown(MouseEvent evt) {
+    clear();
+    run();
+    down = true;
+  }
+   
+  
+  void mouseMove(MouseEvent evt) {
+    if (down) {    }
+  }
+  
+  
+  void touchDown(TouchEvent tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  }
+  
+  
+  void touchUp(var tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  }
+  
+  
+  void touchDrag(var tframe) {
+    for (var te in tframe.changedTouches) {
+    }
+  }   
 }
 

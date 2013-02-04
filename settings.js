@@ -3,10 +3,10 @@
  * Reset to default values for the start of a new game
  */
 function resetValues() {
-   localStorage.valueR = 0.3;   // insulation rating
-   localStorage.valueB = 1.0;   // furnace power
-   localStorage.valueE = 0.2;   // furnace efficiency 
-   localStorage.valueC = 0.3;   // energy cost (dollars per kWh)
+   localStorage.valueR = 0.4;   // insulation rating
+   localStorage.valueB = 0.8;   // furnace power
+   localStorage.valueE = 0.3;   // furnace efficiency 
+   localStorage.valueC = 0.2;   // energy cost (dollars per kWh)
    localStorage.thermostat = "round";  // thermostat type
 }
 
@@ -16,8 +16,7 @@ function resetValues() {
  */
 function startNewGame() {
    resetValues();
-   window.location = "index.html";
-   return false;
+   initValues();
 }
 
 
@@ -81,3 +80,14 @@ function setThermostat(tstat) {
    }
    return false;
 }
+
+
+function adopt() {
+   var el = document.getElementById("polar-bear");
+   if (el) {
+      el.style.visibility = 'visible';
+   }
+   return false;
+}
+
+
