@@ -59,16 +59,85 @@ body {
    -webkit-transform: rotate(-90deg);
 }
 
+/* Penguin status boxes */
+.penguins {
+   position: absolute;
+   top: 98px;
+   right: 25px;
+   width: 120px;
+   height: 610px;
+   color: white;
+   font-size: 22px;
+   font-family: sans-serif;
+   background-color: rgba(0, 0, 0, 0.4);
+   padding: 20px 10px 0 10px;
+   margin: 0;
+}
+
+.penguins li {
+   height: 100px;
+   text-align: left;
+   list-style: none;
+   background-repeat: no-repeat;
+   background-position: 10px 10px;
+   border-radius: 15px;
+   padding-left: 80px;
+   margin-bottom: 6px;
+}
+
+.penguins li:hover {
+   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.penguins li.selected {
+   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.penguins li:active {
+   background-color: rgba(255, 255, 255, 0.4);
+}
+
+
+#green-penguin  { background-image: url('images/green_penguin.png');}
+#red-penguin    { background-image: url('images/red_penguin.png'); }
+#blue-penguin   { background-image: url('images/blue_penguin.png'); }
+#orange-penguin { background-image: url('images/orange_penguin.png'); }
+#polar-bear     { background-image: url('images/polar_bear.png'); }
+
+
+.bill-title {
+   text-align: center;
+   color: white;
+   font-size: 14px;
+   padding: 2px;
+   background-color: rgba(0, 0, 0, 0.8);
+   height: 20px;
+}
+
+#budget {
+   padding: 5px;
+   text-align: center;
+}
 
 /* page transition animation */
-@-webkit-keyframes slidein {
+@-webkit-keyframes slidein-left {
    0%   { left: 1500px; }
    100% { left: 25px; }
 }
 
-@-webkit-keyframes slideout {
+@-webkit-keyframes slideout-left {
    0%   { left: 25px; }
    100% { left: -1500px; }
+}
+
+@-webkit-keyframes slidein-right {
+   0%     { left: -1500px; }
+   100%   { left: 25px; }
+}
+
+@-webkit-keyframes slideout-right {
+   0%     { left: 25px; }
+   100%   { left: 1500px; }
 }
 
 
@@ -79,7 +148,7 @@ body {
    left: 1500px;
    
    padding: 30px;
-   width: 964px;
+   width: 800px;
    height: 570px;
    text-align: center;
    background-color: rgba(255, 255, 255, 0.1);
@@ -125,15 +194,28 @@ button {
 
 /* Next button at the bottom right of the screen */
 .next-button {
-   width: 150px;
-   height: 59px;
+   width: 131px;
+   height: 62px;
    position: absolute;
-   bottom: 25px;
-   right: 25px;
-   background: url("images/next.png") 0 0 no-repeat;
+   bottom: 10px;
+   right: 0px;
+   background: url("images/next1.png") 0 0 no-repeat;
 }
 .next-button:hover { background-color: rgba(0, 0, 0, 0); }
 .next-button:active { background-position: 3px 3px; }
+
+
+/* Back button at the bottom right of the screen */
+.back-button {
+   width: 131px;
+   height: 62px;
+   position: absolute;
+   bottom: 10px;
+   left: 0px;
+   background: url("images/back.png") 0 0 no-repeat;
+}
+.back-button:hover { background-color: rgba(0, 0, 0, 0); }
+.back-button:active { background-position: 3px 3px; }
 
 /* spinner canvas */
 #spinner {
@@ -334,4 +416,117 @@ button.radio-mix[checked=true] {
 .button-group li:last-child .radio-mix {
   border-radius: 0 18px 18px 0;
 }
+
+
+/* HEAT, OFF, COOL Switch */
+#heating-switch {
+   -webkit-appearance: none;
+   -moz-appearance: none;
+   width: 72px;
+   height: 28px;
+   background-color: rgba(255, 255, 255, 0.5);
+   border-radius: 25px;
+   box-shadow: inset 2px 3px 3px rgba(0, 0, 0, 0.5);
+}
+
+#heating-switch::-webkit-slider-thumb {
+   -webkit-appearance: none !important;
+   width: 26px;
+   height: 26px;
+   border-radius: 13px;
+   margin-top: 1px;
+   background-color: rgba(255, 255, 255, 0.8);
+   box-shadow: inset -2px -3px 3px rgba(0, 0, 0, 0.5);
+}
+
+#heating-label {
+   display: block;
+   background-color: rgba(0,0,0,0);
+   color: rgba(255, 255, 255, 0.7);
+   position: relative;
+   top: -8px;
+   font-size: 14px;
+}
+
+
+/* Energy Bill */
+#energy-bill {
+   position: relative;
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 10px;
+   width: 600px;
+   height: 553px;
+   background: url('images/bill.png') no-repeat 0 0;
+   font-size: 14px;
+   font-family: arial, sans-serif;
+   font-weight: bold;
+   text-align: right;
+}
+
+#bill-summary-date {
+   position: absolute; top: 107px; left: 185px; font-size: 12px; font-weight: normal;
+}
+            
+#bill-summary-amount {
+   position: absolute; top: 107px; left: 285px; font-size: 12px; font-weight: normal;
+}
+            
+#bill-energy {
+   position: absolute; top: 315px; left: 350px; width: 150px; 
+}
+
+#bill-rate {
+   position: absolute; top: 349px; left: 350px; width: 150px;
+}
+            
+#bill-subtotal {
+   position: absolute; top: 383px; left: 350px; width: 150px;
+}
+            
+#bill-previous {
+   position: absolute; top: 417px; left: 350px; width: 150px;
+}
+            
+#bill-total {
+   position: absolute; top: 487px; left: 350px; width: 150px;
+}
+
+#paid-stamp {
+   position: absolute;
+   top: 80px;
+   left: 250px;
+   background: url('images/paid.png') no-repeat 0 0;
+   width: 300px; height: 300px;
+   visibility: hidden;
+}
+
+/* Pay now button */
+#pay-now {
+   padding: 9px 15px;
+ 	border-radius: 20px;  /* rounded corners */
+   background-color: #d22;
+   box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.3);
+   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.5) 0, rgba(0,0,0,0.3) 80%);
+   text-shadow: -1px -1px rgba(0, 0, 0, 0.5);
+   border: 1px solid #666;
+   text-align: center;
+   display: block;
+   font-family: sans-serif;
+   font-weight: 400;
+   font-size: 15px;
+   color: white;
+   position: absolute;
+   left: 30px;
+   bottom: 30px;
+}
+
+#pay-now:hover { background-color: #f00; }
+
+#pay-now:active {
+  background-color: #d22;
+  background-image: none;
+  box-shadow: inset 0 3px 3px rgba(0, 0, 0, .2);
+}
+
 
