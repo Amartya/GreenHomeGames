@@ -10,7 +10,7 @@
    <script src="settings.js" type="text/javascript"></script>
 </head>
 
-<body onload="initValues();">
+<body onload="startNewGame();">
    
    <!-- use these two lines to run in dartium -->
    <script src="main.dart" type="application/dart"></script>
@@ -49,10 +49,10 @@
          <div id="weather-report"></div>
          
          <div id="weather-temps"></div>
+ 
+         <button id="back1" class="back-button" value="1" />
          
-         <img src="images/penguin.png" style="position: absolute; left: 25px; bottom: 25px;" />
-         
-         <button id="next1" class="next-button" style="visibility: hidden;" />
+         <button id="next1" class="next-button" value="1" />
          
       </div>
       
@@ -62,9 +62,12 @@
         
          <canvas id="thermostat" width="500" height="500"></canvas>
          
-         <img src="images/penguin.png" style="position: absolute; left: 25px; bottom: 25px;" />
+         <input type="range" min="0" max="2" step="1" value="0" id="heating-switch"></input>
+         <label for="heating-switch" id="heating-label">HEAT&nbsp;&nbsp;OFF&nbsp;&nbsp;COOL</label>
          
-         <button id="next2" class="next-button" />
+         <button id="back2" class="back-button" value="2" />
+      
+         <button id="next2" class="next-button" value="2" />
       
       </div>
 
@@ -72,15 +75,69 @@
       <!-- simulator dialog -->
       <div class="page" id="page3">
          
-         <canvas id="simulator" width="700" height="450"></canvas>
+         <canvas id="simulator" width="750" height="525"></canvas>
         
-         <img src="images/penguin.png" style="position: absolute; left: 25px; bottom: 25px;" />
-         
-         <button id="next3" class="next-button" style="visibility: hidden;" />
+         <button id="back3" class="back-button" value="3" />
+
+         <button id="next3" class="next-button" value="3" />
       
       </div>
       
       
+      <!-- energy bill dialog -->
+      <div class="page" id="page4">
+         
+         <div id="energy-bill">
+            
+            <div id="bill-summary-date">JANUARY</div>
+            
+            <div id="bill-summary-amount"></div>
+            
+            <div id="bill-energy"></div>
+            
+            <div id="bill-rate"></div>
+            
+            <div id="bill-subtotal"></div>
+            
+            <div id="bill-previous"></div>
+            
+            <div id="bill-total"></div>
+            
+            <div id="paid-stamp"></div>
+            
+            <button id="pay-now">Pay Now!</button>
+            
+         </div>
+         
+         <button id="back4" class="back-button" value="4" />
+      
+         <button id="next4" class="next-button" value="4" />
+      
+      </div>
+      
+      
+
+      <!-- penguin status bar -->
+      <ul class="penguins">
+         
+         <li id="orange-penguin" class="activated">0</li>
+         
+         <li id="green-penguin">0</li>
+         
+         <li id="red-penguin">0</li>
+         
+         <li id="blue-penguin">0</li>
+         
+         <li id="polar-bear" style="visibility: hidden;">0</li>
+         
+         <div style="background-color: rgba(255, 255, 255, 0.2);">
+            <div class="bill-title">BILL</div>
+            <div id="running-bill">$1,259</div>
+         </div>
+
+      </ul>                 
+
+         
       <!-- settings dialog -->
       <div class="page" id="settings-page">
          <form action="index.html" id="settings" method="post" oninput="saveValues()">
@@ -106,7 +163,7 @@
             
                <tr>
                   <td><label for="rangeC">Energy Cost (per kWh):</label></td>
-                  <td><input id="rangeC" class="rangeslider" type="range" min="0" max="2.0" step="0.1" /></td>
+                  <td><input id="rangeC" class="rangeslider" type="range" min="0" max="1.0" step="0.1" /></td>
                   <td class="bubble"><output for="rangeC" name="outC"></output></td>
                </tr>
                
@@ -120,6 +177,13 @@
                      </ul>
                   </td>
                   <td></td>
+               </tr>
+               
+               <tr>
+                  <td><label for="adopt">Adopt a Pet:</label></td>
+                  <td colspan="2">
+                     <button class="big-button" onclick="return adopt();">Adopt</button>
+                  </td>
                </tr>
          
             <br><br>
